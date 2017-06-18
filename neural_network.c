@@ -1,85 +1,85 @@
 /*********************************************************/
-/*                   nn.c                                */
-/* ë‹¨ìˆœí•œ ê³„ì¸µí˜• ì‹ ê²½ë§ ê³„ì‚°                             */
-/* ï¼‘ ì¶œë ¥ ë§ì„ ê³„ì‚°(í•™ìŠµ ì—†ìŒ)                          */
-/* ì‚¬ìš© ë°©ë²•                                             */
-/*  \Users\deeplearning\ch4>nn < data.txt                */
+/*                   neural_net.c                        */
+/* ´Ü¼øÇÑ °èÃşÇü ½Å°æ¸Á °è»ê                             */
+/* £± Ãâ·Â ¸ÁÀ» °è»ê(ÇĞ½À ¾øÀ½)                          */
 /*********************************************************/
 
-/*Visual Studioì™€ì˜ í˜¸í™˜ì„± í™•ë³´ */
+/*Visual Studio¿ÍÀÇ È£È¯¼º È®º¸ */
 #define _CRT_SECURE_NO_WARNINGS
 
-/* í—¤ë” íŒŒì¼ í¬í•¨*/
+/* Çì´õ ÆÄÀÏ Æ÷ÇÔ*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
-/*ê¸°í˜¸ ìƒìˆ˜ ì •ì˜*/
-#define INPUTNO 2  /*ì…ë ¥ì¸µì˜ ì…€ ê°œìˆ˜*/ 
-#define HIDDENNO 2  /*ì¤‘ê°„ì¸µì˜ ì…€ ê°œìˆ˜*/ 
-#define MAXINPUTNO 100    /*ë°ì´í„° ìµœëŒ€ ê°œìˆ˜*/ 
+/*±âÈ£ »ó¼ö Á¤ÀÇ*/
+#define INPUTNO 2  /*ÀÔ·ÂÃşÀÇ ¼¿ °³¼ö*/ 
+#define HIDDENNO 2  /*Áß°£ÃşÀÇ ¼¿ °³¼ö*/ 
+#define MAXINPUTNO 100    /*µ¥ÀÌÅÍ ÃÖ´ë °³¼ö*/ 
 
-/*í•¨ìˆ˜ í”„ë¡œí† íƒ€ì… ì„ ì–¸*/
-double f(double u); /*ì „í™˜ í•¨ìˆ˜*/
+/*ÇÔ¼ö ÇÁ·ÎÅäÅ¸ÀÔ ¼±¾ğ*/
+double f(double u); /*ÀüÈ¯ ÇÔ¼ö*/
 void initwh(double wh[HIDDENNO][INPUTNO + 1]);
-/*ì¤‘ê°„ì¸µì˜ ê°€ì¤‘ì¹˜ ì´ˆê¸°í™”*/
-void initwo(double wo[HIDDENNO + 1]);/*ì¶œë ¥ì¸µì˜ ê°€ì¤‘ì¹˜ ì´ˆê¸°í™”*/
-double forward(double wh[HIDDENNO][INPUTNO + 1], double wo[HIDDENNO + 1], double hi[], double e[INPUTNO]); /*ìˆœë°©í–¥ ê³„ì‚°*/
-int getdata(double e[][INPUTNO]);/*ë°ì´í„° ì½ì–´ë“¤ì´ê¸°*/
+/*Áß°£ÃşÀÇ °¡ÁßÄ¡ ÃÊ±âÈ­*/
+void initwo(double wo[HIDDENNO + 1]);/*Ãâ·ÂÃşÀÇ °¡ÁßÄ¡ ÃÊ±âÈ­*/
+double forward(double wh[HIDDENNO][INPUTNO + 1]
+	, double wo[HIDDENNO + 1], double hi[]
+	, double e[INPUTNO]); /*¼ø¹æÇâ °è»ê*/
+int getdata(double e[][INPUTNO]);/*µ¥ÀÌÅÍ ÀĞ¾îµéÀÌ±â*/
 
 /*******************/
-/*    main() í•¨ìˆ˜  */
+/*    main() ÇÔ¼ö  */
 /*******************/
+
 int main()
 {
-	double wh[HIDDENNO][INPUTNO + 1];/*ì¤‘ê°„ì¸µì˜ ê°€ì¤‘ì¹˜*/
-	double wo[HIDDENNO + 1];/*ì¶œë ¥ì¸µì˜ ê°€ì¤‘ì¹˜*/
-	double e[MAXINPUTNO][INPUTNO];/*ë°ì´í„° ì„¸íŠ¸*/
-	double hi[HIDDENNO + 1];/*ì¤‘ê°„ì¸µ ì¶œë ¥*/
-	double o;/*ì¶œë ¥*/
-	int i, j;/*ë°˜ë³µ ì œì–´*/
-	int n_of_e;/*ë°ì´í„° ê°œìˆ˜*/
+	double wh[HIDDENNO][INPUTNO + 1];//Áß°£ÃşÀÇ °¡ÁßÄ¡//
+	double wo[HIDDENNO + 1];//Ãâ·ÂÃşÀÇ °¡ÁßÄ¡//
+	double e[MAXINPUTNO][INPUTNO];//µ¥ÀÌÅÍ ¼¼Æ®//
+	double hi[HIDDENNO + 1];//Áß°£Ãş Ãâ·Â//
+	double o;//Ãâ·Â//
+	int i, j;//¹İº¹ Á¦¾î//
+	int n_of_e;//µ¥ÀÌÅÍ °³¼ö//
 
-	/*ê°€ì¤‘ì¹˜ ì´ˆê¸°í™”*/
+	//°¡ÁßÄ¡ ÃÊ±âÈ­//
 	initwh(wh);
 	initwo(wo);
 
-	/*ì…ë ¥ ë°ì´í„° ì½ì–´ë“¤ì´ê¸°*/
+	//ÀÔ·Â µ¥ÀÌÅÍ ÀĞ¾îµéÀÌ±â//
 	n_of_e = getdata(e);
-	printf("ë°ì´í„° ê°œìˆ˜:%d\n", n_of_e);
+	printf("µ¥ÀÌÅÍ °³¼ö:%d\n", n_of_e);
 
-	/*ê³„ì‚° ë³¸ì²´*/
+	//°è»ê º»Ã¼//
 	for (i = 0; i < n_of_e; ++i) {
-		printf("test%d : ", i);
+		printf("[Test_set %d]   Inputs = ", i);
 		for (j = 0; j < INPUTNO; ++j)
-			printf("x%d=%.0lf ", j, e[i][j]);
+			printf(" %.0lf ", e[i][j]);
 		o = forward(wh, wo, hi, e[i]);
-		printf("  out=%.0lf\n", o);
+		printf("  Out = %.0lf\n", o);
 	}
-
 
 	return 0;
 }
 
 /************************/
-/*  getdata() í•¨ìˆ˜      */
-/*í•™ìŠµ ë°ì´í„° ì½ì–´ë“¤ì´ê¸°*/
+/*  getdata() ÇÔ¼ö      */
+/*ÇĞ½À µ¥ÀÌÅÍ ÀĞ¾îµéÀÌ±â*/
 /************************/
 int getdata(double e[][INPUTNO])
 {
-	FILE *fp = fopen("data24.txt", "r");
+	FILE* fp = fopen("data/data1.txt", "r");
 	if (fp == NULL)
 	{
-		printf("file open error!\n");
+		printf("file do not exits!\n");
 		exit(1);
 	}
-	int n_of_e = 0;/*ë°ì´í„° ì„¸íŠ¸ ê°œìˆ˜*/
-	int j = 0;/*ë°˜ë³µ ì œì–´ìš©*/
+	int n_of_e = 0;/*µ¥ÀÌÅÍ ¼¼Æ® °³¼ö*/
+	int j = 0;/*¹İº¹ Á¦¾î¿ë*/
 
-	/*ë°ì´í„° ì…ë ¥*/
-	while (fscanf(fp, "%lf", &e[n_of_e][j]) != EOF) {
+	/*µ¥ÀÌÅÍ ÀÔ·Â*/
+	while (fscanf(fp,"%lf", &e[n_of_e][j]) != EOF) {
 		++j;
-		if (j >= INPUTNO) {/*ë‹¤ìŒ ë°ì´í„°*/
+		if (j >= INPUTNO) {/*´ÙÀ½ µ¥ÀÌÅÍ*/
 			j = 0;
 			++n_of_e;
 		}
@@ -87,76 +87,75 @@ int getdata(double e[][INPUTNO])
 	fclose(fp);
 	return n_of_e;
 }
-
-
 /**********************/
-/*  forward() í•¨ìˆ˜    */
-/*  ìˆœë°©í–¥ ê³„ì‚°       */
+/*  forward() ÇÔ¼ö    */
+/*  ¼ø¹æÇâ °è»ê       */
 /**********************/
 double forward(double wh[HIDDENNO][INPUTNO + 1],
-		double wo[HIDDENNO + 1], double hi[],
-		double e[INPUTNO])
+	double wo[HIDDENNO + 1], double hi[],
+	double e[INPUTNO])
 {
-	int i, j;/*ë°˜ë³µ ì œì–´*/
-	double u;/*ê°€ì¤‘ì¹˜ë¥¼ ì ìš©í•œ í•©ì„ êµ¬í•¨*/
-	double o;/*ì¶œë ¥ ê³„ì‚°*/
+	int i, j;/*¹İº¹ Á¦¾î*/
+	double u;/*°¡ÁßÄ¡¸¦ Àû¿ëÇÑ ÇÕÀ» ±¸ÇÔ*/
+	double o;/*Ãâ·Â °è»ê*/
 
-	/*hi ê³„ì‚°*/
+	/*hi °è»ê*/
 	for (i = 0; i < HIDDENNO; ++i) {
-		u = 0;/*ê°€ì¤‘ì¹˜ë¥¼ ì ìš©í•œ í•©ì„ êµ¬í•¨*/
+		u = 0;/*°¡ÁßÄ¡¸¦ Àû¿ëÇÑ ÇÕÀ» ±¸ÇÔ*/
 		for (j = 0; j < INPUTNO; ++j)
 			u += e[j] * wh[i][j];
-		u += wh[i][j];/*ì—­ì¹˜ ì²˜ë¦¬*/
+		u += wh[i][j];/*¿ªÄ¡ Ã³¸®*/
 		hi[i] = f(u);
 	}
-	/*ì¶œë ¥ o ê³„ì‚°*/
+	/*Ãâ·Â o °è»ê*/
 	o = 0;
 	for (i = 0; i < HIDDENNO; ++i)
 		o += hi[i] * wo[i];
-	o += wo[i];/*ì—­ì¹˜ ì²˜ë¦¬*/
+	o += wo[i];/*¿ªÄ¡ Ã³¸®*/
 
 	return f(o);
 }
 
 //***********************/
-/*    initwh() í•¨ìˆ˜     */
-/*ì¤‘ê°„ì¸µì˜ ê°€ì¤‘ì¹˜ ì´ˆê¸°í™”*/
+/*    initwh() ÇÔ¼ö     */
+/*Áß°£ÃşÀÇ °¡ÁßÄ¡ ÃÊ±âÈ­*/
 /************************/
 void initwh(double wh[HIDDENNO][INPUTNO + 1])
 {
 
-	/*ê°€ì¤‘ì„ ìƒìˆ˜ë¡œì„œ ë¶€ì—¬*/
-	wh[0][0] = -2;
-	wh[0][1] = 3;
-	wh[0][2] = 1;
-	wh[1][0] = -2;
-	wh[1][1] = 1;
-	wh[1][2] = -0.5;
+	/*°¡ÁßÀ» »ó¼ö·Î¼­ ºÎ¿©*/
+	wh[0][0] = 1;
+	wh[0][1] = 1;
+	wh[0][2] = -0.5;
+	wh[1][0] = -1;
+	wh[1][1] = -1;
+	wh[1][2] = 1.5;
 }
 
 /************************/
-/*    initwo() í•¨ìˆ˜     */
-/*ì¶œë ¥ì¸µì˜ ê°€ì¤‘ì¹˜ ì´ˆê¸°í™”*/
+/*    initwo() ÇÔ¼ö     */
+/*Ãâ·ÂÃşÀÇ °¡ÁßÄ¡ ÃÊ±âÈ­*/
 /************************/
 void initwo(double wo[HIDDENNO + 1])
 {
-	/*ê°€ì¤‘ì„ ìƒìˆ˜ë¡œì„œ ë¶€ì—¬*/
-	wo[0] = -60;
-	wo[1] = 94;
-	wo[2] = 1;
+	/*°¡ÁßÀ» »ó¼ö·Î¼­ ºÎ¿©*/
+	wo[0] = 1;
+	wo[1] = 1;
+	wo[2] = -1.5;
 }
 
 /*******************/
-/* f() í•¨ìˆ˜         */
-/* ì „í™˜ í•¨ìˆ˜        */
+/* f() ÇÔ¼ö         */
+/* ÀüÈ¯ ÇÔ¼ö        */
 /*******************/
 double f(double u)
 {
-	/*ê³„ë‹¨ í•¨ìˆ˜ ê³„ì‚°*/
+	/*°è´Ü ÇÔ¼ö °è»ê*/
 	if (u >= 0) return 1.0;
 	else return 0.0;
 
-	/*ì‹œê·¸ëª¨ì´ë“œ í•¨ìˆ˜ ê³„ì‚°*/
-	// return 1.0/(1.0+exp(-u)) ;
+	/*½Ã±×¸ğÀÌµå ÇÔ¼ö °è»ê*/
+   // return 1.0/(1.0+exp(-u)) ;
 }
+
 

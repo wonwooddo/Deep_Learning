@@ -1,70 +1,78 @@
+/*********************************************************/
+/*                   neuron.c                            */
+/* ÇÏ³ªÀÇ ÀÎ°ø ½Å°æ °è»ê                                 */
+/* Àû´çÇÑ °¡ÁßÄ¡¿Í ¿ªÄ¡¸¦ °¡Áø ÀÎ°ø ½Å°æÀ» Èä³»³¿        */
+/*********************************************************/
+
+/*Visual Studio¿ÍÀÇ È£È¯¼º È®º¸ */
+#define _CRT_SECURE_NO_WARNINGS
+
+/* Çì´õ ÆÄÀÏ Æ÷ÇÔ*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
-/*ê¸°í˜¸ ìƒìˆ˜ ì •ì˜*/
-#define INPUTNO 2		  //ì…ë ¥ ìˆ˜ 
-#define MAXINPUTNO 100    //ë°ì´í„°ì˜ ìµœëŒ€ ê°œìˆ˜ 
+/*±âÈ£ »ó¼ö Á¤ÀÇ*/
+#define INPUTNO 2  /*ÀÔ·Â ¼ö*/ 
+#define MAXINPUTNO 100    /*µ¥ÀÌÅÍÀÇ ÃÖ´ë °³¼ö*/ 
 
-int a;
-
-/*í•¨ìˆ˜ í”„ë¡œí† íƒ€ì… ì„ ì–¸*/
-double f(double u); //ì „í™˜ í•¨ìˆ˜
-void initw(double w[INPUTNO + 1]);//ê°€ì¤‘ì¹˜ì™€ Biasì˜ ì´ˆê¸°í™”
-double forward(double w[INPUTNO + 1], double e[INPUTNO]); //ìˆœë°©í–¥ ê³„ì‚°
-int getdata(double e[][INPUTNO]); //ë°ì´í„° ì½ì–´ë“¤ì´ê¸°
+/*ÇÔ¼ö ÇÁ·ÎÅäÅ¸ÀÔ ¼±¾ğ*/
+double f(double u); /*ÀüÈ¯ ÇÔ¼ö*/
+void initw(double w[INPUTNO + 1]);
+/*°¡ÁßÄ¡¿Í ¿ªÄ¡ÀÇ ÃÊ±âÈ­*/
+double forward(double w[INPUTNO + 1]
+	, double e[INPUTNO]); /*¼ø¹æÇâ °è»ê*/
+int getdata(double e[][INPUTNO]);/*µ¥ÀÌÅÍ ÀĞ¾îµéÀÌ±â*/
 
 /*******************/
-/*    main() í•¨ìˆ˜  */
+/*    main() ÇÔ¼ö  */
 /*******************/
 int main()
 {
-	double w[INPUTNO + 1]; //ê°€ì¤‘ì¹˜ì™€ Bias
-	double e[MAXINPUTNO][INPUTNO]; //ë°ì´í„° ì„¸íŠ¸
-	double o;//ì¶œë ¥
-	int i, j;//ë°˜ë³µ ì œì–´
-	int n_of_e;//ë°ì´í„° ê°œìˆ˜
+	double w[INPUTNO + 1];/*°¡ÁßÄ¡¿Í ¿ªÄ¡*/
+	double e[MAXINPUTNO][INPUTNO];/*µ¥ÀÌÅÍ ¼¼Æ®*/
+	double o;/*Ãâ·Â*/
+	int i, j;/*¹İº¹ Á¦¾î*/
+	int n_of_e;/*µ¥ÀÌÅÍ °³¼ö*/
 
-	/*ê°€ì¤‘ì¹˜ ì´ˆê¸°í™”*/
+	/*°¡ÁßÄ¡ ÃÊ±âÈ­*/
 	initw(w);
 
-	/*ì…ë ¥ ë°ì´í„° ì½ì–´ë“¤ì´ê¸°*/
+	/*ÀÔ·Â µ¥ÀÌÅÍ ÀĞ¾îµéÀÌ±â*/
 	n_of_e = getdata(e);
-	printf("ë°ì´í„° ê°œìˆ˜ : %d\n\n", n_of_e);
+	printf("µ¥ÀÌÅÍ °³¼ö:%d\n", n_of_e);
 
-	/*ê³„ì‚° ë³¸ì²´*/
-	for (i = 0; i<n_of_e; ++i) {
-		printf("test%d : ", i);
+	/*°è»ê º»Ã¼*/
+	for (i = 0; i < n_of_e; ++i) {
+		printf("[Test_Set %d]   Inputs = ", i+1);
 		for (j = 0; j < INPUTNO; ++j)
-		{
-			printf("x%d=%.0lf, ",j,  e[i][j]);
-		}
+			printf("%.0lf  ", e[i][j]);
 		o = forward(w, e[i]);
-		printf("%lf\n", o);
+		printf("  Out = %.0lf\n", o);
 	}
 
 	return 0;
 }
 
 /************************/
-/*  getdata() í•¨ìˆ˜      */
-/* í•™ìŠµë°ì´í„° ì½ì–´ë“¤ì´ê¸°*/
+/*  getdata() ÇÔ¼ö      */
+/* ÇĞ½Àµ¥ÀÌÅÍ ÀĞ¾îµéÀÌ±â*/
 /************************/
 int getdata(double e[][INPUTNO])
 {
-	FILE *fp = fopen("data24.txt", "r");
+	FILE* fp = fopen("data/data1.txt","r");
 	if (fp == NULL)
 	{
 		printf("file open error!\n");
 		exit(1);
 	}
-	int n_of_e = 0;/*ë°ì´í„° ì„¸íŠ¸ ê°œìˆ˜*/
-	int j = 0;/*ë°˜ë³µ ì œì–´ìš©*/
+	int n_of_e = 0;/*µ¥ÀÌÅÍ ¼¼Æ® °³¼ö*/
+	int j = 0;/*¹İº¹ Á¦¾î¿ë*/
 
-	/*ë°ì´í„° ì…ë ¥*/
-	while (fscanf(fp, "%lf", &e[n_of_e][j]) != EOF) {
+	/*µ¥ÀÌÅÍ ÀÔ·Â*/
+	while (fscanf(fp,"%lf", &e[n_of_e][j]) != EOF) {
 		++j;
-		if (j >= INPUTNO) {/*ë‹¤ìŒ ë°ì´í„°*/
+		if (j >= INPUTNO) {/*´ÙÀ½ µ¥ÀÌÅÍ*/
 			j = 0;
 			++n_of_e;
 		}
@@ -74,46 +82,47 @@ int getdata(double e[][INPUTNO])
 }
 
 /**********************/
-/*  forward() í•¨ìˆ˜    */
-/*  ìˆœë°©í–¥ ê³„ì‚°       */
+/*  forward() ÇÔ¼ö    */
+/*  ¼ø¹æÇâ °è»ê       */
 /**********************/
 double forward(double w[INPUTNO + 1], double e[INPUTNO])
 {
-	int i;/*ë°˜ë³µ ì œì–´*/
-	double u, o;/*ì¤‘ê°„ ê³„ì‚°ê°’ uì™€ ì¶œë ¥ o*/
+	int i;/*¹İº¹ Á¦¾î*/
+	double u, o;/*Áß°£ °è»ê°ª u¿Í Ãâ·Â o*/
 
-	/*ê³„ì‚° ë³¸ì²´*/
+	/*°è»ê º»Ã¼*/
 	u = 0;
-	for (i = 0; i<INPUTNO; ++i)
+	for (i = 0; i < INPUTNO; ++i)
 		u += e[i] * w[i];
-	u += w[i];/*Bias ì²˜ë¦¬*/
-	/*ì¶œë ¥ê°’ ê³„ì‚°*/
+	u += w[i];/*¿ªÄ¡ Ã³¸®*/
+	/*Ãâ·Â°ª °è»ê*/
 	o = f(u);
 	return o;
 }
 
 /**********************/
-/*    initw() í•¨ìˆ˜    */
-/*  ê°€ì¤‘ì¹˜ ì´ˆê¸°í™”     */
+/*    initw() ÇÔ¼ö    */
+/*  °¡ÁßÄ¡ ÃÊ±âÈ­     */
 /**********************/
 void initw(double w[INPUTNO + 1])
 {
-	/*ìƒìˆ˜ë¥¼ ê°€ì¤‘ì¹˜ë¡œ ì¤Œ*/
+	/*»ó¼ö¸¦ °¡ÁßÄ¡·Î ÁÜ*/
 	w[0] = 1;
 	w[1] = 1;
-	//w[2] = -1.5;
-	w[2]= -1 ;
+	w[2] = -2;
+	// w[2]=0.5 ;
 }
 
 /*******************/
-/* f() í•¨ìˆ˜        */
-/* ì „í™˜ í•¨ìˆ˜       */
+/* f() ÇÔ¼ö        */
+/* ÀüÈ¯ ÇÔ¼ö       */
 /*******************/
 double f(double u)
 {
-	/*ê³„ë‹¨ í•¨ìˆ˜ ê³„ì‚°*/
+	/*°è´Ü ÇÔ¼ö °è»ê*/
 	if (u >= 0) return 1.0;
 	else return 0.0;
 
+	/*½Ã±×¸ğÀÌµå ÇÔ¼ö °è»ê*/
+   // return 1.0/(1.0+exp(-u)) ;
 }
-
