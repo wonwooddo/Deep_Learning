@@ -1,12 +1,7 @@
 /*********************************************************/
 /*            simplecnn.c                                */
-/* 나선형 신경망의 기본 구조 데모                        */
-/* CNN의 기본 구조(골격만)를 나타냄                      */
-/* 사용 방법                                             */
-/* \Users\deeplearning\ch5>simplecnn < data1.txt         */
 /*********************************************************/
 
-/* 헤더 파일 포함*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -25,42 +20,25 @@
 #define ALPHA  10		/*학습 계수*/ 
 
 /*함수 프로토타입 선언*/
-void conv(double filter[FILTERSIZE][FILTERSIZE]
-	,double e[][INPUTSIZE]
-	,double convout[][INPUTSIZE]) ;	/*나선형 계산*/
-double calcconv(double filter[][FILTERSIZE]
-	,double e[][INPUTSIZE],int i,int j) ;
-			/*  필터 적용  */
-void pool(double convout[][INPUTSIZE]
-	,double poolout[][POOLOUTSIZE]) ; 
-			/*풀링 계산*/	  
-double maxpooling(double convout[][INPUTSIZE]
-	,int i,int j) ;	/* 최댓값 풀링 */
-int getdata(double e[][INPUTSIZE][INPUTSIZE],int r[]) ;
-			/*데이터 읽어들이기*/ 
-void showdata(double e[][INPUTSIZE][INPUTSIZE],int t[]
-	,int n_of_e) ;	/*데이터표시*/ 
-void initfilter(double filter[FILTERNO][FILTERSIZE][FILTERSIZE]) ;
-			/*필터 초기화*/
+void conv(double filter[FILTERSIZE][FILTERSIZE],double e[][INPUTSIZE],double convout[][INPUTSIZE]) ;	/*나선형 계산*/
+double calcconv(double filter[][FILTERSIZE],double e[][INPUTSIZE],int i,int j) ;		/*  필터 적용  */
+void pool(double convout[][INPUTSIZE],double poolout[][POOLOUTSIZE]) ; 	/*풀링 계산*/	  
+double maxpooling(double convout[][INPUTSIZE],int i,int j) ;	/* 최댓값 풀링 */
+int getdata(double e[][INPUTSIZE][INPUTSIZE],int r[]) ;		/*데이터 읽어들이기*/ 
+void showdata(double e[][INPUTSIZE][INPUTSIZE],int t[],int n_of_e) ;	/*데이터표시*/ 
+void initfilter(double filter[FILTERNO][FILTERSIZE][FILTERSIZE]) ;		/*필터 초기화*/
 double drnd(void) ;	/* 난수의 생성 */
 double f(double u) ;	/*전환 함수(시그모이드 함수)*/
-void initwh(double wh[HIDDENNO][POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1]) ;
-			/*중간층 가중치 초기화*/
+void initwh(double wh[HIDDENNO][POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1]) ;		/*중간층 가중치 초기화*/
 void initwo(double wo[HIDDENNO+1]) ;	/*출력층 가중치 초기화*/
-double forward(double wh[HIDDENNO][POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1]
-	,double wo[HIDDENNO+1],double hi[]
-	,double e[POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1]) ;
-			/*순방향 계산*/
-void olearn(double wo[HIDDENNO+1],double hi[]
-	,double e[POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1],double o) ;
-			/*출력층 가중치 조정*/
-void hlearn(double wh[HIDDENNO][POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1]
-	,double wo[HIDDENNO+1],double hi[]
-	,double e[POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1],double o) ;
-			/*중간층 가중치 조정*/
+double forward(double wh[HIDDENNO][POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1],double wo[HIDDENNO+1],double hi[],double e[POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1]) ;	/*순방향 계산*/
+void olearn(double wo[HIDDENNO+1],double hi[],double e[POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1],double o) ;		/*출력층 가중치 조정*/
+void hlearn(double wh[HIDDENNO][POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1],double wo[HIDDENNO+1],double hi[],double e[POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1],double o) ;/*중간층 가중치 조정*/
 double f(double u) ;	/*전환 함수(시그모이드 함수)*/
-void print(double wh[HIDDENNO][POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1]
-	 ,double wo[HIDDENNO+1]) ;	/*결과 출력*/
+void print(double wh[HIDDENNO][POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1],double wo[HIDDENNO+1]) ;	/*결과 출력*/
+
+void convres(double convout[][INPUTSIZE]) ;
+void poolres(double poolout[][POOLOUTSIZE]) ;	/*결과 출력*/
 
 /*******************/ 
 /*    main() 함수  */ 
@@ -103,13 +81,15 @@ int main()
    for(j=0;j<FILTERNO;++j){/*필터마다 반복 */
     /*나선형 계산*/
     conv(filter[j],e[i],convout) ;
+    convres(convout);
     /*풀링 계산*/
     pool(convout,poolout) ;
+    poolres(poolout);
+
     /*풀링 출력을 전결합층 입력으로 복사*/
     for(m=0;m<POOLOUTSIZE;++m)
      for(n=0;n<POOLOUTSIZE;++n)
-      ef[j*POOLOUTSIZE*POOLOUTSIZE+POOLOUTSIZE*m+n]
-	  =poolout[m][n] ;
+      ef[j*POOLOUTSIZE*POOLOUTSIZE+POOLOUTSIZE*m+n] =poolout[m][n] ;
     ef[POOLOUTSIZE*POOLOUTSIZE*FILTERNO]=t[i] ;	/*교사 데이터*/
    }
    /*순방향 계산*/
@@ -144,8 +124,7 @@ int main()
     /*풀링 출력을 전결합층 입력으로 복사*/
     for(m=0;m<POOLOUTSIZE;++m)
      for(n=0;n<POOLOUTSIZE;++n)
-      ef[j*POOLOUTSIZE*POOLOUTSIZE+POOLOUTSIZE*m+n]
-	  =poolout[m][n] ;
+      ef[j*POOLOUTSIZE*POOLOUTSIZE+POOLOUTSIZE*m+n] =poolout[m][n] ;
     ef[POOLOUTSIZE*POOLOUTSIZE*FILTERNO]=t[i] ;	/*교사 데이터*/
    }
    o=forward(wh,wo,hi,ef) ;
@@ -155,12 +134,46 @@ int main()
  return 0 ;
 }
 
+
+/**********************/
+/*  poolres() 함수    */
+/*  결과 출력         */
+/**********************/
+void poolres(double poolout[][POOLOUTSIZE]) 
+{
+ int i,j ;	/*반복 제어*/
+ 
+ for(i=0;i<POOLOUTSIZE;++i){
+  for(j=0;j<POOLOUTSIZE;++j){
+   printf("%.3lf ",poolout[i][j]) ;
+  }
+  printf("\n") ;
+ }
+ printf("\n") ;	
+} 
+/**********************/
+/*  convres() 함수    */
+/* 나선형 결과 출력   */
+/**********************/
+void convres(double convout[][INPUTSIZE]) 
+{
+ int i,j ;	/*반복 제어*/
+ 
+ for(i=1;i<INPUTSIZE-1;++i){
+  for(j=1;j<INPUTSIZE-1;++j){
+   printf("%.3lf ",convout[i][j]) ;
+  }
+  printf("\n") ;
+ }
+ printf("\n") ;	
+} 
+
+
 /**********************/
 /*   print() 함수     */
 /*   결과 출력        */
 /**********************/
-void print(double wh[HIDDENNO][POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1]
-	 ,double wo[HIDDENNO+1])
+void print(double wh[HIDDENNO][POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1] ,double wo[HIDDENNO+1])
 {
  int i,j ;	/*반복 제어*/
 
@@ -197,8 +210,7 @@ void hlearn(double wh[HIDDENNO][POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1]
 /*  olearn() 함수      */
 /*  출력층 가중치 학습 */
 /***********************/
-void olearn(double wo[HIDDENNO+1]
-    ,double hi[],double e[POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1],double o)
+void olearn(double wo[HIDDENNO+1],double hi[],double e[POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1],double o)
 {
  int i ;	/*반복 제어*/
  double d ;	/*가중치 계산에 이용*/
@@ -215,9 +227,7 @@ void olearn(double wo[HIDDENNO+1]
 /*  forward() 함수     */
 /*  순방향 계산      */
 /**********************/
-double forward(double wh[HIDDENNO][POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1]
-	,double wo[HIDDENNO+1],double hi[]
-	,double e[POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1])
+double forward(double wh[HIDDENNO][POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1],double wo[HIDDENNO+1],double hi[],double e[POOLOUTSIZE*POOLOUTSIZE*FILTERNO+1])
 {
  int i,j ;	/*반복 제어*/
  double u ;	/*가중치 적용 합 계산*/
@@ -354,22 +364,17 @@ void showdata(double e[][INPUTSIZE][INPUTSIZE],int t[],int n_of_e)
 /************************/
 int getdata(double e[][INPUTSIZE][INPUTSIZE],int t[])
 {
- FILE *fp=fopen("data/data1.txt","r");
-  if(fp==NULL)
-  {
-    printf("file open error!\n");
-    exit(1);    
-  }
+  FILE *fp=fopen("data/data11.txt","r");
  int i=0,j=0,k=0 ;	/*반복 제어용*/
 
  /*데이터 입력*/
  while(fscanf(fp,"%d",&t[i])!=EOF){/*교사 데이터 읽어들이기*/
   /*이미지 데이터 읽어들이기*/
   while(fscanf(fp,"%lf",&e[i][j][k])!=EOF){
-   ++ k ;
+   ++ k;
    if(k>=INPUTSIZE){/*다음 데이터*/
-    k=0 ;
-    ++j ;
+    k=0;
+    ++j;
     if(j>=INPUTSIZE) break ;	/*입력 종료*/
    }
   }
@@ -384,8 +389,7 @@ int getdata(double e[][INPUTSIZE][INPUTSIZE],int t[])
 /*  conv() 함수       */
 /*  나선형 계산       */
 /**********************/
-void conv(double filter[][FILTERSIZE]
-	,double e[][INPUTSIZE],double convout[][INPUTSIZE])
+void conv(double filter[][FILTERSIZE],double e[][INPUTSIZE],double convout[][INPUTSIZE])
 {
  int i=0,j=0 ;	/*반복 제어용*/
  int startpoint=FILTERSIZE/2 ;	/*나선형 범위 하한*/
@@ -399,8 +403,7 @@ void conv(double filter[][FILTERSIZE]
 /*  calcconv() 함수   */
 /*  필터 적용	*/
 /**********************/
-double calcconv(double filter[][FILTERSIZE]
-	    ,double e[][INPUTSIZE],int i,int j)
+double calcconv(double filter[][FILTERSIZE],double e[][INPUTSIZE],int i,int j)
 {
  int m,n ;	/*반복 제어용*/
  double sum=0 ;	/*합 값*/
